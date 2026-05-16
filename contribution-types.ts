@@ -43,9 +43,11 @@ export interface DriverConfirmedV2 {
   firstDpKm: number | null;
   lastDpKm: number | null;
   distance: number; // PU + DP total
-  distancePuKm: number;
-  distanceDpKm: number;
-  distancePersonalKm: number; // 0 in v2 (kept for engine compat)
+  // The next 3 are written by /api/submit but kept optional here so consumer
+  // code reading older v2 docs (or partial test data) doesn't have to assert.
+  distancePuKm?: number;
+  distanceDpKm?: number;
+  distancePersonalKm?: number; // 0 in v2 (kept for engine compat)
 }
 
 export interface MileagePhotosV2 {

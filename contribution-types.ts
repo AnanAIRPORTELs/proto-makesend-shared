@@ -138,9 +138,27 @@ export interface DailyContributionDoc {
 
 // ─── Type guards ──────────────────────────────────────────────────────────
 
-export function isV2(doc: Pick<DailyContributionDoc, "schemaVersion" | "driverConfirmed" | "mileagePhotos">): boolean {
+// Input shape is intentionally loose — consumer Contrib types vary slightly
+// between repos. The fields we actually read are stable.
+export interface IsV2Input {
+  schemaVersion?: SchemaVersion;
+  driverConfirmed?: {
+    homeKm?: number | null;
+    hubKm?: number | null;
+    firstDpKm?: number | null;
+    lastDpKm?: number | null;
+  };
+  mileagePhotos?: {
+    homeUrl?: string | null;
+    hubUrl?: string | null;
+    firstDpUrl?: string | null;
+    lastDpUrl?: string | null;
+  };
+}
+
+export function isV2(doc: IsV2Input): boolean {
   if (doc.schemaVersion === 2) return true;
-  const dc = doc.driverConfirmed as DriverConfirmedV2 | undefined;
+  const dc = doc.driverConfirmed;
   if (
     dc?.homeKm != null ||
     dc?.hubKm != null ||
@@ -148,7 +166,7 @@ export function isV2(doc: Pick<DailyContributionDoc, "schemaVersion" | "driverCo
     dc?.lastDpKm != null
   )
     return true;
-  const m = doc.mileagePhotos as MileagePhotosV2 | undefined;
+  const m = doc.mileagePhotos;
   if (m?.homeUrl || m?.hubUrl || m?.firstDpUrl || m?.lastDpUrl) return true;
   return false;
 }

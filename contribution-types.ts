@@ -57,10 +57,24 @@ export interface MileagePhotosV2 {
   lastDpUrl: string | null;
 }
 
+/**
+ * Driver dispatch performance — time per delivery point.
+ *
+ * Per Khun Ho 2026-05-18: the relevant metric is minutes spent per
+ * delivery between firstDp.takenAt and lastDp.takenAt, not km/h. Lower
+ * is better. Computed only when both photos have EXIF timestamps and
+ * deliveryCount > 0; null otherwise.
+ *
+ *   minutesPerDelivery = durationMinutes / deliveryCount
+ *
+ * durationMinutes is the wall-clock interval between the firstDp and
+ * lastDp odometer photo timestamps. deliveryCount is the driver-entered
+ * jobDp (delivery points) on that contribution.
+ */
 export interface DispatchSpeed {
-  avgKmh: number;
+  minutesPerDelivery: number;
   durationMinutes: number;
-  distanceKm: number;
+  deliveryCount: number;
 }
 
 // ─── v1 (legacy 2-photo, pre 2026-05-16) ──────────────────────────────────

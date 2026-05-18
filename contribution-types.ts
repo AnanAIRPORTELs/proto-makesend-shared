@@ -10,8 +10,8 @@
 // point of "automatic notice".
 
 /** Doc shape version. Bump when adding/removing/renaming top-level fields. */
-export type SchemaVersion = 1 | 2;
-export const CURRENT_SCHEMA_VERSION: SchemaVersion = 2;
+export type SchemaVersion = 1 | 2 | 3;
+export const CURRENT_SCHEMA_VERSION: SchemaVersion = 3;
 
 // ─── v2 (4-photo odometer model, 2026-05-16+) ─────────────────────────────
 
@@ -138,6 +138,14 @@ export interface DailyContributionDoc {
   backHomeKm?: number | null;
   dispatchSpeed?: DispatchSpeed | null;
 
+  // v3-only (2026-05-18+): proof-photo audit splits into a Pickup leg and a
+  // Dispatch leg. Each is a MileageAuditResult shape — defined in the
+  // driver-input/fleet-payroll repos (not re-typed here to keep this shared
+  // module free of audit-engine details). The legacy `mileageAudit` is kept
+  // for v2-only callers and is populated with the pickup leg on v3.
+  mileageAuditPickup?: unknown | null;
+  mileageAuditDispatch?: unknown | null;
+
   // Misc
   supportingPhotoUrl?: string | null;
   note?: string | null;
@@ -171,7 +179,7 @@ export interface IsV2Input {
 }
 
 export function isV2(doc: IsV2Input): boolean {
-  if (doc.schemaVersion === 2) return true;
+  if (doc.schemaVersion === 2 || doc.schemaVersion === 3) return true;
   const dc = doc.driverConfirmed;
   if (
     dc?.homeKm != null ||
@@ -182,5 +190,21 @@ export function isV2(doc: IsV2Input): boolean {
     return true;
   const m = doc.mileagePhotos;
   if (m?.homeUrl || m?.hubUrl || m?.firstDpUrl || m?.lastDpUrl) return true;
+  return false;
+}
+
+export interface IsV3Input {
+  schemaVersion?: SchemaVersion;
+  mileageAuditPickup?: unknown | null;
+  mileageAuditDispatch?: unknown | null;
+}
+
+/** True when the doc has the v3 split Pickup/Dispatch audit fields. v3 docs
+ *  also satisfy isV2() — v3 is a superset, not a replacement. */
+export function isV3(doc: IsV3Input): boolean {
+  if (doc.schemaVersion === 3) return true;
+  if (doc.mileageAuditPickup != null || doc.mileageAuditDispatch != null) {
+    return true;
+  }
   return false;
 }

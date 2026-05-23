@@ -13,6 +13,30 @@
 export type SchemaVersion = 1 | 2 | 3;
 export const CURRENT_SCHEMA_VERSION: SchemaVersion = 3;
 
+// ─── Job sheet cross-check (DP, 2026-05-23+) ──────────────────────────────
+
+/** How a driver-input photo group was resolved against the planning sheet. */
+export type JobMatchSource =
+  | "auto" // System picked nearest job by proximity
+  | "manual" // Driver explicitly picked from dropdown
+  | "missing_confirmed" // Driver confirmed "job in sheet but no photo"
+  | "not_a_job"; // Driver flagged group as non-delivery stop
+
+export interface JobMatch {
+  /** Photo group ID (driver-input ProofGroup.groupId). null when no group. */
+  groupId: number | null;
+  /** Sheet booking ID. null for not_a_job. */
+  bookingId: string | null;
+  /** Decision source. */
+  source: JobMatchSource;
+  /** Haversine distance between centroids in meters. null when unmeasurable. */
+  distM: number | null;
+  /** True if matched pair's postcodes disagree (warn, don't block). */
+  postcodeMismatch?: boolean;
+  /** Free text for missing_confirmed / not_a_job. */
+  reason?: string | null;
+}
+
 // ─── v2 (4-photo odometer model, 2026-05-16+) ─────────────────────────────
 
 export interface OdometerPhotoMeta {
@@ -145,6 +169,11 @@ export interface DailyContributionDoc {
   // for v2-only callers and is populated with the pickup leg on v3.
   mileageAuditPickup?: unknown | null;
   mileageAuditDispatch?: unknown | null;
+
+  // 2026-05-23 — Job sheet cross-check (DP only, Phase 1). Per-group decision
+  // about which planning-sheet booking the group represents, OR a driver
+  // confirmation that a job had no photo / a group was a non-delivery stop.
+  jobMatches?: JobMatch[];
 
   // Misc
   supportingPhotoUrl?: string | null;

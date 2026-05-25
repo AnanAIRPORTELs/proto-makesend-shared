@@ -170,10 +170,25 @@ export interface DailyContributionDoc {
   mileageAuditPickup?: unknown | null;
   mileageAuditDispatch?: unknown | null;
 
-  // 2026-05-23 — Job sheet cross-check (DP only, Phase 1). Per-group decision
-  // about which planning-sheet booking the group represents, OR a driver
-  // confirmation that a job had no photo / a group was a non-delivery stop.
-  jobMatches?: JobMatch[];
+  // 2026-05-23 — Job sheet cross-check. Per-group decision about which
+  // planning-sheet booking the group represents, OR a driver confirmation
+  // that a job had no photo / a group was a non-delivery stop. DP shipped
+  // first, PU added same day after Khun Ho confirmed DP works.
+  //
+  // Driver-input wrote these at submit time until 2026-05-25 — see
+  // adminJobMatches{,Pu} below for the new admin-resolved variant after the
+  // architecture move.
+  jobMatches?: JobMatch[]; // DP leg (legacy / driver-side)
+  jobMatchesPu?: JobMatch[]; // PU leg (legacy / driver-side)
+
+  // 2026-05-25 — Admin-side audit (Khun Ho's architecture move: HITL +
+  // matching moved off driver-input). Fleet-payroll review recomputes
+  // photo groups from raw proofPhotos and the admin resolves any
+  // mismatches against the planning sheet. Persisted here so the audit
+  // survives reviewer changes and the payroll engine has a single source
+  // of truth.
+  adminJobMatches?: JobMatch[]; // DP leg (admin-resolved)
+  adminJobMatchesPu?: JobMatch[]; // PU leg (admin-resolved)
 
   // Misc
   supportingPhotoUrl?: string | null;
